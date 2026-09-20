@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
+import com.synchrony.setu.dto.ApplicantScoreRequest;
+
 @RestController
 @RequestMapping("/api")
 public class ScoreController {
@@ -29,7 +31,7 @@ public class ScoreController {
     }
 
     @PostMapping("/score")
-    public ResponseEntity<?> score(@RequestBody Map<String, Object> applicantPayload) {
+    public ResponseEntity<?> score(@RequestBody ApplicantScoreRequest request) {
         // Thin-slice: forward straight to the Python model-service.
         // TODO: persist applicant + score history in Postgres (see db/init.sql)
         // once the DB layer is wired up.
@@ -37,7 +39,7 @@ public class ScoreController {
             Map<?, ?> body = modelServiceClient.post()
                     .uri("/score")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(applicantPayload)
+                    .body(request)
                     .retrieve()
                     .body(Map.class);
             return ResponseEntity.ok(body);
