@@ -34,8 +34,11 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(applicant),
       })
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`)
-      setResult(await res.json())
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        throw new Error(data ? JSON.stringify(data) : `Request failed: ${res.status}`)
+      }
+      setResult(data)
     } catch (err) {
       setError(err.message)
     } finally {
