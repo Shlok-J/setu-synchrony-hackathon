@@ -8,7 +8,7 @@ Run with:  uvicorn app:app --reload --port 8000   (from inside model-service/)
 from pathlib import Path
 
 import pandas as pd
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
 
 from model.explain import generate_explanation
@@ -19,6 +19,25 @@ app = FastAPI(title="Setu Model Service")
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "synthetic_applicants.csv"
 _training_df = pd.read_csv(DATA_PATH)
 engine = SetuScoringEngine(_training_df)
+
+
+@app.middleware("http")
+async def log_score_requests(request: Request, call_next):
+    # TEMPORARY diagnostic: the Spring Boot -> model-service hop has been
+    # producing "body: Field required, input: null" despite two different
+    # fixes on the Java side. Log exactly what actually arrives on the wire
+    # so we stop guessing. Remove once this is resolved.
+    if request.url.path == "/score":
+        raw_body = await request.body()
+        print(
+            f"[DEBUG /score] method={request.method} "
+            f"content-type={request.headers.get('content-type')!r} "
+            f"content-length={request.headers.get('content-length')!r} "
+            f"transfer-encoding={request.headers.get('transfer-encoding')!r} "
+            f"body={raw_body!r}",
+            flush=True,
+        )
+    return await call_next(request)
 
 
 class ScoreRequest(BaseModel):
