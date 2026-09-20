@@ -1,0 +1,25 @@
+{
+  "name": "setu-hackathon",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installMaven": true
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  },
+  "forwardPorts": [5173, 8080, 8000, 5432],
+  "portsAttributes": {
+    "5173": { "label": "frontend (React/Vite)" },
+    "8080": { "label": "backend (Spring Boot)" },
+    "8000": { "label": "model-service (FastAPI)" },
+    "5432": { "label": "postgres" }
+  },
+  "postCreateCommand": "pip install -r model-service/requirements.txt && (cd frontend && npm install)"
+}
