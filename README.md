@@ -53,4 +53,4 @@ python generate_synthetic_data.py
 
 ## Status
 
-Working end-to-end, verified live in Codespaces: React → Spring Boot → model-service → back, covering consent (enforced server-side), scoring, explanation, per-applicant score history, right-to-erasure, and a real fairness audit of the trained model (`GET /api/fairness-report`). Postgres/pgvector schema is defined (`db/init.sql`) but consent/history currently run on an in-memory store instead — see "Current build status" in [DESIGN.md](DESIGN.md) for the reasoning.
+Working end-to-end, verified live in Codespaces: React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring, real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, and a real fairness audit of the trained model (`GET /api/fairness-report`). AWS deployment is in progress — see [DESIGN.md](DESIGN.md) for current status.

@@ -33,5 +33,6 @@ CREATE TABLE IF NOT EXISTS score_history (
     scored_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     risk_score REAL,
     method TEXT,
-    explanation TEXT
+    explanation TEXT,
+    result_json TEXT  -- full score response (incl. top_factors), stored as JSON text for simplicity
 );
