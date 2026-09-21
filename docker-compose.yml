@@ -7,10 +7,43 @@ services:
       POSTGRES_USER: setu
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-setu_dev_password}
     ports:
-      - "5432:5432"
+      - "5432:5432"  # kept for local (non-containerized) Codespace dev; not exposed publicly on EC2
     volumes:
       - setu_pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  model-service:
+    build:
+      context: .
+      dockerfile: model-service/Dockerfile
+    restart: unless-stopped
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+
+  backend:
+    build:
+      context: backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - postgres
+      - model-service
+    environment:
+      DATASOURCE_URL: jdbc:postgresql://postgres:5432/setu
+      DATASOURCE_USERNAME: setu
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-setu_dev_password}
+      MODEL_SERVICE_URL: http://model-service:8000
+
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
 
 volumes:
   setu_pgdata:

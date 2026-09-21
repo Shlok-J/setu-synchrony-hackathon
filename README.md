@@ -51,6 +51,16 @@ cd data
 python generate_synthetic_data.py
 ```
 
+## Deploying (Docker Compose — e.g. on an EC2 instance)
+
+All four services are containerized (`docker-compose.yml`, plus a `Dockerfile` in `backend/`, `model-service/`, and `frontend/`). This is the same compose file used for local dev (`postgres`), extended to build and run the other three services too, wired together by their Compose service names instead of `localhost`.
+
+1. `cp .env.example .env` and fill in `GEMINI_API_KEY` (and change `POSTGRES_PASSWORD` if you want) — Compose loads `.env` automatically.
+2. `docker compose up -d --build`
+3. Open `http://<host-ip>/` — nginx serves the built React app and reverse-proxies `/api/*` to the backend container (see `frontend/nginx.conf`).
+
+Only port 80 (and 22 for SSH) needs to be open to the internet; 8080/8000/5432 are reached only inside the Compose network, not published externally in this configuration.
+
 ## Status
 
 Working end-to-end, verified live in Codespaces: React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring, real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, and a real fairness audit of the trained model (`GET /api/fairness-report`). AWS deployment is in progress — see [DESIGN.md](DESIGN.md) for current status.

@@ -5,6 +5,7 @@ Spring Boot calls this over HTTP; it never talks to applicants directly.
 Run with:  uvicorn app:app --reload --port 8000   (from inside model-service/)
 """
 
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -17,7 +18,16 @@ from model.scoring import SetuScoringEngine
 
 app = FastAPI(title="Setu Model Service")
 
-DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "synthetic_applicants.csv"
+# Default matches running this file directly from a repo checkout
+# (model-service/app.py, data/ as a sibling directory). The Docker image
+# instead sets SYNTHETIC_DATA_PATH explicitly, since a container's internal
+# layout doesn't have to -- and here, doesn't -- mirror the repo layout.
+DATA_PATH = Path(
+    os.environ.get(
+        "SYNTHETIC_DATA_PATH",
+        str(Path(__file__).resolve().parent.parent / "data" / "synthetic_applicants.csv"),
+    )
+)
 _training_df = pd.read_csv(DATA_PATH)
 engine = SetuScoringEngine(_training_df)
 
