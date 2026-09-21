@@ -1,5 +1,14 @@
 import { useState } from 'react'
 
+// Demo simplification: the backend's API-key auth (ApiKeyFilter.java) is a
+// single shared key, not per-user identity, and this is where the frontend
+// would normally read a user's own token instead of a value baked into the
+// shipped JS. A real deployment would use OAuth2/JWT issued per signed-in
+// user; a static client-side key only proves the server-side check is real,
+// not that this is how production auth should look.
+const API_KEY = 'demo-setu-8f3k29xz'
+const API_HEADERS = { 'X-API-Key': API_KEY }
+
 const SAMPLE_APPLICANT = {
   applicant_id: 'DEMO001',
   days_active: 10,
@@ -39,7 +48,7 @@ export default function App() {
     try {
       const res = await fetch('/api/consent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...API_HEADERS },
         body: JSON.stringify({ applicant_id: applicant.applicant_id, consent_given: true }),
       })
       if (!res.ok) throw new Error(`Consent request failed: ${res.status}`)
@@ -57,7 +66,7 @@ export default function App() {
     try {
       const res = await fetch('/api/score', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...API_HEADERS },
         body: JSON.stringify(applicant),
       })
       const data = await res.json().catch(() => null)
@@ -76,7 +85,7 @@ export default function App() {
     setFairnessLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/fairness-report')
+      const res = await fetch('/api/fairness-report', { headers: API_HEADERS })
       if (!res.ok) throw new Error(`Fairness report request failed: ${res.status}`)
       setFairnessReport(await res.json())
     } catch (err) {
@@ -130,7 +139,10 @@ export default function App() {
 
       <button
         onClick={async () => {
-          await fetch(`/api/applicants/${encodeURIComponent(applicant.applicant_id)}`, { method: 'DELETE' })
+          await fetch(`/api/applicants/${encodeURIComponent(applicant.applicant_id)}`, {
+            method: 'DELETE',
+            headers: API_HEADERS,
+          })
           setConsentGiven(false)
           setResult(null)
         }}
