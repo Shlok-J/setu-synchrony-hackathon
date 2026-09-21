@@ -42,7 +42,7 @@ python -m pytest tests/ -v
 
 ## Optional: real LLM explanations
 
-Set `GEMINI_API_KEY` as an environment variable or a Codespaces secret before starting the model-service to get real LLM-generated explanations instead of the template fallback. Free key: [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Never commit a real key — copy `.env.example` to `.env`, which is gitignored.
+Set `GROQ_API_KEY` as an environment variable or a Codespaces secret before starting the model-service to get real LLM-generated explanations instead of the template fallback. Free key: [console.groq.com/keys](https://console.groq.com/keys). Never commit a real key — copy `.env.example` to `.env`, which is gitignored.
 
 ## Regenerating the synthetic dataset
 
@@ -55,7 +55,7 @@ python generate_synthetic_data.py
 
 All four services are containerized (`docker-compose.yml`, plus a `Dockerfile` in `backend/`, `model-service/`, and `frontend/`). This is the same compose file used for local dev (`postgres`), extended to build and run the other three services too, wired together by their Compose service names instead of `localhost`.
 
-1. `cp .env.example .env` and fill in `GEMINI_API_KEY` (and change `POSTGRES_PASSWORD` if you want) — Compose loads `.env` automatically.
+1. `cp .env.example .env` and fill in `GROQ_API_KEY` (and change `POSTGRES_PASSWORD` if you want) — Compose loads `.env` automatically.
 2. `docker compose up -d --build`
 3. Open `http://<host-ip>/` — nginx serves the built React app and reverse-proxies `/api/*` to the backend container (see `frontend/nginx.conf`).
 
@@ -63,4 +63,4 @@ Only port 80 (and 22 for SSH) needs to be open to the internet; 8080/8000/5432 a
 
 ## Status
 
-**Live on AWS:** http://43.204.147.211/ — and working identically in the Codespace. React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring (cohort lookup backed by a real pgvector similarity search over a PCA-learned embedding), real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, API-key auth, real input validation, and a real fairness audit of the trained model (`GET /api/fairness-report`). See [DESIGN.md](DESIGN.md) for full status.
+**Live on AWS:** http://43.204.147.211/ — and working identically in the Codespace. React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring (cohort lookup backed by a real pgvector similarity search over a PCA-learned embedding), real Groq-based explanation, per-applicant score history (persisted), right-to-erasure, API-key auth, real input validation, and a real fairness audit of the trained model (`GET /api/fairness-report`). See [DESIGN.md](DESIGN.md) for full status.

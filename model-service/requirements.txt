@@ -3,7 +3,7 @@ uvicorn[standard]>=0.29
 pandas>=2.2
 numpy>=1.26
 scikit-learn>=1.4
-google-genai
+requests>=2.31
 psycopg2-binary>=2.9
 python-dotenv>=1.0
 pytest>=8.0
