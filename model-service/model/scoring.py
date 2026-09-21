@@ -35,13 +35,15 @@ class ScoreResult:
 
 
 class SetuScoringEngine:
-    def __init__(self, training_df: pd.DataFrame, k_neighbors: int = 25):
+    def __init__(self, training_df: pd.DataFrame, k_neighbors: int = 25, db_conn=None):
         self.scaler = StandardScaler()
         X = self.scaler.fit_transform(training_df[FEATURE_COLUMNS])
         y = training_df["repaid_on_time"].to_numpy()
 
-        k = min(k_neighbors, len(training_df))
-        self.cohort_index = NearestNeighbors(n_neighbors=k)
+        # scikit-learn cohort index: always built, since it's also the
+        # fallback if the pgvector path below is unavailable or fails.
+        self._cohort_k = min(k_neighbors, len(training_df))
+        self.cohort_index = NearestNeighbors(n_neighbors=self._cohort_k)
         self.cohort_index.fit(X)
         self._cohort_outcomes = y
 
@@ -50,7 +52,40 @@ class SetuScoringEngine:
         )
         self.direct_model.fit(X, y)
 
+        # pgvector-backed cohort lookup (optional). Any failure here just
+        # leaves self.db_conn as None, so _cohort_score below falls back
+        # to the sklearn index unconditionally.
+        self.db_conn = None
+        self.embedding_model = None
+        if db_conn is not None:
+            try:
+                from model.embeddings import EmbeddingModel
+                from model.db import populate_borrower_embeddings
+
+                self.embedding_model = EmbeddingModel(X)
+                populate_borrower_embeddings(
+                    db_conn,
+                    training_df["applicant_id"].tolist(),
+                    self.embedding_model.embed_batch(X),
+                    y,
+                )
+                self.db_conn = db_conn
+            except Exception:
+                self.db_conn = None
+                self.embedding_model = None
+
     def _cohort_score(self, x_scaled: np.ndarray) -> float:
+        if self.db_conn is not None and self.embedding_model is not None:
+            try:
+                from model.db import query_cohort_outcomes
+
+                query_embedding = self.embedding_model.embed(x_scaled)
+                outcomes = query_cohort_outcomes(self.db_conn, query_embedding, self._cohort_k)
+                if outcomes:
+                    return float(np.mean(outcomes))
+            except Exception:
+                pass  # fall through to the sklearn lookup below
+
         _, idx = self.cohort_index.kneighbors(x_scaled.reshape(1, -1))
         return float(self._cohort_outcomes[idx[0]].mean())
 

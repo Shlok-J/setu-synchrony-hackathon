@@ -12,6 +12,7 @@ import pandas as pd
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from model.db import connect as db_connect
 from model.explain import generate_explanation
 from model.fairness import compute_fairness_report
 from model.scoring import SetuScoringEngine
@@ -29,7 +30,13 @@ DATA_PATH = Path(
     )
 )
 _training_df = pd.read_csv(DATA_PATH)
-engine = SetuScoringEngine(_training_df)
+
+# Optional: enables pgvector-based cohort lookup (see model/scoring.py and
+# model/db.py). None if Postgres isn't reachable -- the engine falls back
+# to its in-process scikit-learn cohort index in that case, so this never
+# blocks startup or breaks scoring.
+_db_conn = db_connect()
+engine = SetuScoringEngine(_training_df, db_conn=_db_conn)
 
 
 class ScoreRequest(BaseModel):
@@ -49,7 +56,11 @@ class ScoreRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "ok", "training_rows": len(_training_df)}
+    return {
+        "status": "ok",
+        "training_rows": len(_training_df),
+        "pgvector_cohort_search": engine.db_conn is not None,
+    }
 
 
 @app.get("/fairness-report")

@@ -21,10 +21,17 @@ CREATE TABLE IF NOT EXISTS alt_data_signals (
     kyc_complete BOOLEAN
 );
 
--- Vector dimension (10) matches len(FEATURE_COLUMNS) in model-service/model/scoring.py
+-- Reference population for pgvector-based cohort similarity search
+-- (model-service/model/db.py + model/embeddings.py). Deliberately NOT a
+-- foreign key to `applicants`: this holds the synthetic training
+-- population's embeddings + known outcomes (used to estimate a new
+-- applicant's cold-start risk), which is a different, independent
+-- population from real consented app users. Vector dimension (8) matches
+-- EMBED_DIM in model-service/model/embeddings.py.
 CREATE TABLE IF NOT EXISTS borrower_embeddings (
-    applicant_id TEXT PRIMARY KEY REFERENCES applicants(applicant_id),
-    embedding vector(10)
+    applicant_id TEXT PRIMARY KEY,
+    embedding vector(8),
+    outcome BOOLEAN
 );
 
 CREATE TABLE IF NOT EXISTS score_history (

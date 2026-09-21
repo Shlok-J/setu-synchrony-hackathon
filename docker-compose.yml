@@ -17,9 +17,16 @@ services:
       context: .
       dockerfile: model-service/Dockerfile
     restart: unless-stopped
+    depends_on:
+      - postgres
     environment:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      PGHOST: postgres
+      PGPORT: 5432
+      PGDATABASE: setu
+      PGUSER: setu
+      PGPASSWORD: ${POSTGRES_PASSWORD:-setu_dev_password}
 
   backend:
     build:
