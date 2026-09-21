@@ -20,7 +20,7 @@ _SYSTEM_PROMPT = (
     "religion, caste, or any demographic category, even if asked."
 )
 
-_MODEL = os.environ.get("GROQ_MODEL", "llama-3.1-8b-instant")
+_MODEL = os.environ.get("GROQ_MODEL", "qwen/qwen3.8-27b")
 _GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
 
 
