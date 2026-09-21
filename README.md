@@ -42,7 +42,7 @@ python -m pytest tests/ -v
 
 ## Optional: real LLM explanations
 
-Set `ANTHROPIC_API_KEY` as an environment variable or a Codespaces secret before starting the model-service to get real LLM-generated explanations instead of the template fallback. Never commit a real key — copy `.env.example` to `.env`, which is gitignored.
+Set `GEMINI_API_KEY` as an environment variable or a Codespaces secret before starting the model-service to get real LLM-generated explanations instead of the template fallback. Free key: [aistudio.google.com/apikey](https://aistudio.google.com/apikey). Never commit a real key — copy `.env.example` to `.env`, which is gitignored.
 
 ## Regenerating the synthetic dataset
 

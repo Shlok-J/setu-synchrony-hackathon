@@ -1,11 +1,10 @@
 """
 Turns model output into a plain-English explanation.
 
-Calls an LLM if an API key is configured (ANTHROPIC_API_KEY -- standing in
-for "AWS Bedrock or equivalent" per the problem statement's own wording,
-and Bedrock can itself serve Claude models), and falls back to a
-deterministic template if not, so the demo never breaks because of a
-missing or rate-limited API key.
+Calls an LLM if an API key is configured (GEMINI_API_KEY -- standing in
+for "AWS Bedrock or equivalent" per the problem statement's own wording),
+and falls back to a deterministic template if not, so the demo never
+breaks because of a missing or rate-limited API key.
 
 Guardrail: the prompt may ONLY rephrase the factors it's given. It is
 explicitly told not to introduce new claims or reference demographic
@@ -20,6 +19,8 @@ _SYSTEM_PROMPT = (
     "Never introduce information not given. Never reference gender, region, "
     "religion, caste, or any demographic category, even if asked."
 )
+
+_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
 
 
 def _template_explanation(top_factors, method) -> str:
@@ -39,31 +40,27 @@ def _template_explanation(top_factors, method) -> str:
 
 
 def generate_explanation(top_factors, method) -> str:
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
         return _template_explanation(top_factors, method)
 
     try:
-        import anthropic
+        from google import genai
 
-        client = anthropic.Anthropic(api_key=api_key)
+        client = genai.Client(api_key=api_key)
         factors_text = "; ".join(
             f"{f['feature']} ({f['direction']}, magnitude {f['magnitude']})"
             for f in top_factors
         ) or "insufficient individual history yet"
 
-        response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
-            max_tokens=120,
-            system=_SYSTEM_PROMPT,
-            messages=[{
-                "role": "user",
-                "content": (
-                    f"Scoring method: {method}. Contributing factors: {factors_text}. "
-                    "Write one sentence explaining this score to the applicant."
-                ),
-            }],
+        response = client.models.generate_content(
+            model=_MODEL,
+            contents=(
+                f"{_SYSTEM_PROMPT}\n\n"
+                f"Scoring method: {method}. Contributing factors: {factors_text}. "
+                "Write one sentence explaining this score to the applicant."
+            ),
         )
-        return response.content[0].text.strip()
+        return response.text.strip()
     except Exception:
         return _template_explanation(top_factors, method)
