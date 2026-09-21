@@ -3,6 +3,8 @@ package com.synchrony.setu.controller;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.validation.Valid;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +52,7 @@ public class ScoreController {
     }
 
     @PostMapping("/score")
-    public ResponseEntity<?> score(@RequestBody ApplicantScoreRequest request) {
+    public ResponseEntity<?> score(@Valid @RequestBody ApplicantScoreRequest request) {
         if (!applicantStore.hasConsent(request.applicant_id())) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of(
                     "error", "consent required",
