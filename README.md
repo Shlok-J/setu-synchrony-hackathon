@@ -63,4 +63,4 @@ Only port 80 (and 22 for SSH) needs to be open to the internet; 8080/8000/5432 a
 
 ## Status
 
-Working end-to-end, verified live in Codespaces: React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring, real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, and a real fairness audit of the trained model (`GET /api/fairness-report`). AWS deployment is in progress — see [DESIGN.md](DESIGN.md) for current status.
+**Live on AWS:** http://13.233.253.103/ — all four services running containerized on a single EC2 instance. Working end-to-end: React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring, real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, and a real fairness audit of the trained model (`GET /api/fairness-report`). See [DESIGN.md](DESIGN.md) for full status and what's still designed-but-not-wired (pgvector similarity search).
