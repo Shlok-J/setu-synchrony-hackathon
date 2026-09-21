@@ -42,6 +42,8 @@ def _template_explanation(top_factors, method) -> str:
 def generate_explanation(top_factors, method) -> str:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
+        # TEMPORARY diagnostic -- remove once the Gemini path is confirmed working.
+        print("[DEBUG explain] GEMINI_API_KEY not visible in this process's environment", flush=True)
         return _template_explanation(top_factors, method)
 
     try:
@@ -62,5 +64,7 @@ def generate_explanation(top_factors, method) -> str:
             ),
         )
         return response.text.strip()
-    except Exception:
+    except Exception as e:
+        # TEMPORARY diagnostic -- remove once the Gemini path is confirmed working.
+        print(f"[DEBUG explain] Gemini call failed: {type(e).__name__}: {e}", flush=True)
         return _template_explanation(top_factors, method)
