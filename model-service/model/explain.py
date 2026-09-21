@@ -20,7 +20,7 @@ _SYSTEM_PROMPT = (
     "religion, caste, or any demographic category, even if asked."
 )
 
-_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
+_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.6-flash")
 
 
 def _template_explanation(top_factors, method) -> str:
