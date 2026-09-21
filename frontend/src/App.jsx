@@ -26,6 +26,21 @@ const BAND_LABEL = {
   high_risk: 'High risk',
 }
 
+const FIELD_LABELS = {
+  applicant_id: 'Applicant ID',
+  days_active: 'Days as a customer',
+  recharge_freq_per_month: 'Mobile recharges per month',
+  recharge_regularity: 'Recharge regularity (0-1)',
+  tenure_months_on_number: 'Months on this phone number',
+  utility_pct_on_time: 'Utility bills paid on time (0-1)',
+  utility_avg_days_late: 'Average days late on utility bills',
+  txn_freq_per_month: 'Transactions per month',
+  txn_regularity: 'Transaction regularity (0-1)',
+  merchant_diversity: 'Number of different merchants used',
+  platform_tenure_days: 'Days using this platform',
+  kyc_complete: 'KYC verified',
+}
+
 export default function App() {
   const [applicant, setApplicant] = useState(SAMPLE_APPLICANT)
   const [result, setResult] = useState(null)
@@ -144,15 +159,26 @@ export default function App() {
           <div className="setu-grid">
             {Object.entries(applicant).map(([key, value]) => (
               <div className="setu-field" key={key}>
-                <label htmlFor={key}>{key.replace(/_/g, ' ')}</label>
-                <input
-                  id={key}
-                  type={key === 'applicant_id' ? 'text' : 'number'}
-                  value={value}
-                  onChange={(e) =>
-                    handleChange(key, key === 'applicant_id' ? e.target.value : Number(e.target.value))
-                  }
-                />
+                <label htmlFor={key}>{FIELD_LABELS[key] || key}</label>
+                {key === 'kyc_complete' ? (
+                  <select
+                    id={key}
+                    value={value ? 'yes' : 'no'}
+                    onChange={(e) => handleChange(key, e.target.value === 'yes' ? 1 : 0)}
+                  >
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                  </select>
+                ) : (
+                  <input
+                    id={key}
+                    type={key === 'applicant_id' ? 'text' : 'number'}
+                    value={value}
+                    onChange={(e) =>
+                      handleChange(key, key === 'applicant_id' ? e.target.value : Number(e.target.value))
+                    }
+                  />
+                )}
               </div>
             ))}
           </div>
@@ -188,7 +214,7 @@ export default function App() {
                 {result.top_factors.map((f) => (
                   <li key={f.feature}>
                     <span className={`factor-dot ${f.direction}`}></span>
-                    {f.feature.replace(/_/g, ' ')}: {f.direction} (magnitude {f.magnitude})
+                    {FIELD_LABELS[f.feature] || f.feature}: {f.direction} (magnitude {f.magnitude})
                   </li>
                 ))}
               </ul>

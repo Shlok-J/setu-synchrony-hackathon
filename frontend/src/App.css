@@ -137,7 +137,8 @@
   letter-spacing: 0.02em;
 }
 
-.setu-field input {
+.setu-field input,
+.setu-field select {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 0.55rem 0.7rem;
@@ -148,7 +149,12 @@
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-.setu-field input:focus {
+.setu-field select {
+  cursor: pointer;
+}
+
+.setu-field input:focus,
+.setu-field select:focus {
   outline: none;
   border-color: var(--gold);
   box-shadow: 0 0 0 3px var(--focus-ring);
