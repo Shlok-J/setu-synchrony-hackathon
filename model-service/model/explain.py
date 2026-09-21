@@ -42,12 +42,11 @@ def _template_explanation(top_factors, method) -> str:
 def generate_explanation(top_factors, method) -> str:
     api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        # TEMPORARY diagnostic -- remove once the Gemini path is confirmed working.
-        print("[DEBUG explain] GEMINI_API_KEY not visible in this process's environment", flush=True)
         return _template_explanation(top_factors, method)
 
     try:
         from google import genai
+        from google.genai import types
 
         client = genai.Client(api_key=api_key)
         factors_text = "; ".join(
@@ -60,11 +59,17 @@ def generate_explanation(top_factors, method) -> str:
             contents=(
                 f"{_SYSTEM_PROMPT}\n\n"
                 f"Scoring method: {method}. Contributing factors: {factors_text}. "
-                "Write one sentence explaining this score to the applicant."
+                "Reply with ONLY the one sentence, under 30 words. No preamble."
+            ),
+            # Latency levers for a hosted API call: cap output length (we
+            # only need one sentence), and disable extended "thinking" --
+            # pure overhead for a task this simple.
+            config=types.GenerateContentConfig(
+                max_output_tokens=80,
+                temperature=0.3,
+                thinking_config=types.ThinkingConfig(thinking_budget=0),
             ),
         )
         return response.text.strip()
-    except Exception as e:
-        # TEMPORARY diagnostic -- remove once the Gemini path is confirmed working.
-        print(f"[DEBUG explain] Gemini call failed: {type(e).__name__}: {e}", flush=True)
+    except Exception:
         return _template_explanation(top_factors, method)
