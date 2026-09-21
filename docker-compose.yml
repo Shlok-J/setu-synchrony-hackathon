@@ -34,6 +34,7 @@ services:
       DATASOURCE_USERNAME: setu
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-setu_dev_password}
       MODEL_SERVICE_URL: http://model-service:8000
+      APP_API_KEY: ${APP_API_KEY:-}
 
   frontend:
     build:
