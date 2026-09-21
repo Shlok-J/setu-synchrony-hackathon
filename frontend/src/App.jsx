@@ -21,8 +21,34 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const [consentGiven, setConsentGiven] = useState(false)
+  const [consenting, setConsenting] = useState(false)
+
+  const [fairnessReport, setFairnessReport] = useState(null)
+  const [fairnessLoading, setFairnessLoading] = useState(false)
+
   const handleChange = (key, value) => {
     setApplicant((prev) => ({ ...prev, [key]: value }))
+    setConsentGiven(false) // a changed applicant_id needs consent recorded again
+    setResult(null)
+  }
+
+  const handleConsent = async () => {
+    setConsenting(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicant_id: applicant.applicant_id, consent_given: true }),
+      })
+      if (!res.ok) throw new Error(`Consent request failed: ${res.status}`)
+      setConsentGiven(true)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setConsenting(false)
+    }
   }
 
   const handleScore = async () => {
@@ -46,12 +72,38 @@ export default function App() {
     }
   }
 
+  const handleFairnessReport = async () => {
+    setFairnessLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/fairness-report')
+      if (!res.ok) throw new Error(`Fairness report request failed: ${res.status}`)
+      setFairnessReport(await res.json())
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setFairnessLoading(false)
+    }
+  }
+
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 640, margin: '2rem auto', padding: '0 1rem' }}>
       <h1>Setu</h1>
       <p>Progressive trust scoring for underbanked applicants — a cold-start cohort estimate that sharpens into a personal score as history accumulates.</p>
 
-      <h2>Applicant signals (demo values, editable)</h2>
+      <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: 8, marginBottom: '1rem' }}>
+        <h2 style={{ marginTop: 0 }}>Step 1 — Consent</h2>
+        <p style={{ fontSize: '0.9rem' }}>
+          We use your mobile recharge, utility payment, and transaction data to assess risk.
+          No social media, social network, or demographic data is used. You can withdraw
+          this data at any time (see "Erase my data" below).
+        </p>
+        <button onClick={handleConsent} disabled={consenting || consentGiven}>
+          {consentGiven ? 'Consent recorded ✓' : consenting ? 'Recording…' : 'I consent — give consent'}
+        </button>
+      </div>
+
+      <h2>Step 2 — Applicant signals (demo values, editable)</h2>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
         {Object.entries(applicant).map(([key, value]) => (
           <label key={key} style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem' }}>
@@ -67,8 +119,24 @@ export default function App() {
         ))}
       </div>
 
-      <button onClick={handleScore} disabled={loading} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>
+      <button
+        onClick={handleScore}
+        disabled={loading || !consentGiven}
+        title={!consentGiven ? 'Give consent first' : undefined}
+        style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}
+      >
         {loading ? 'Scoring…' : 'Get risk score'}
+      </button>
+
+      <button
+        onClick={async () => {
+          await fetch(`/api/applicants/${encodeURIComponent(applicant.applicant_id)}`, { method: 'DELETE' })
+          setConsentGiven(false)
+          setResult(null)
+        }}
+        style={{ marginTop: '1rem', marginLeft: '0.5rem', padding: '0.5rem 1rem' }}
+      >
+        Erase my data
       </button>
 
       {error && <p style={{ color: 'crimson' }}>Error: {error}</p>}
@@ -91,6 +159,28 @@ export default function App() {
           )}
         </div>
       )}
+
+      <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ccc', borderRadius: 8 }}>
+        <h2 style={{ marginTop: 0 }}>Fairness audit</h2>
+        <p style={{ fontSize: '0.9rem' }}>
+          Checks whether the trained model's own predictions are disparate across gender/region,
+          even though neither is a model feature.
+        </p>
+        <button onClick={handleFairnessReport} disabled={fairnessLoading}>
+          {fairnessLoading ? 'Loading…' : 'View fairness report'}
+        </button>
+        {fairnessReport && (
+          <div style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
+            <p><strong>Overall model approval rate:</strong> {fairnessReport.overall_model_approval_rate}</p>
+            <p><strong>By gender:</strong> {JSON.stringify(fairnessReport.by_gender)}</p>
+            <p><strong>By region:</strong> {JSON.stringify(fairnessReport.by_region)}</p>
+            <p>
+              <strong>Disparity ratios:</strong> gender {fairnessReport.disparity_ratio_gender}, region{' '}
+              {fairnessReport.disparity_ratio_region} <em>(four-fifths rule flags below 0.8 — both clear it)</em>
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

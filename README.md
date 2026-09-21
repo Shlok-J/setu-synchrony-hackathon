@@ -53,4 +53,4 @@ python generate_synthetic_data.py
 
 ## Status
 
-Working thin vertical slice: React → Spring Boot → model-service → back, with real (synthetic-data-trained) scoring and explanation logic, unit-tested. Postgres/pgvector schema is defined (`db/init.sql`) but not yet wired into the running services — see "Current build status" in [DESIGN.md](DESIGN.md) for what's next.
+Working end-to-end, verified live in Codespaces: React → Spring Boot → model-service → back, covering consent (enforced server-side), scoring, explanation, per-applicant score history, right-to-erasure, and a real fairness audit of the trained model (`GET /api/fairness-report`). Postgres/pgvector schema is defined (`db/init.sql`) but consent/history currently run on an in-memory store instead — see "Current build status" in [DESIGN.md](DESIGN.md) for the reasoning.
