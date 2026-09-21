@@ -1,14 +1,10 @@
 """
 Turns model output into a plain-English explanation.
 
-Calls an LLM if an API key is configured (GEMINI_API_KEY -- standing in
-for "AWS Bedrock or equivalent" per the problem statement's own wording),
-and falls back to a deterministic template if not, so the demo never
-breaks because of a missing or rate-limited API key.
-
-Guardrail: the prompt may ONLY rephrase the factors it's given. It is
-explicitly told not to introduce new claims or reference demographic
-categories -- none are passed to it in the first place.
+Uses Gemini if GEMINI_API_KEY is set, otherwise falls back to a fixed
+template so a missing key never breaks the demo. The prompt only lets the
+model rephrase the factors it's handed -- nothing demographic is ever
+passed in, so there's nothing for it to reference even if asked.
 """
 
 import os
@@ -63,9 +59,7 @@ def generate_explanation(top_factors, method) -> str:
                 f"Scoring method: {method}. Contributing factors: {factors_text}. "
                 "Reply with ONLY the one sentence, under 30 words. No preamble."
             ),
-            # Latency levers for a hosted API call: cap output length (we
-            # only need one sentence), and disable extended "thinking" --
-            # pure overhead for a task this simple.
+            # short output + no "thinking" -- both just add latency here
             config=types.GenerateContentConfig(
                 max_output_tokens=80,
                 temperature=0.3,

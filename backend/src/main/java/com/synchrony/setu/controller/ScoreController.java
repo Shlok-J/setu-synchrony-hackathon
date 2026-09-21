@@ -38,11 +38,7 @@ public class ScoreController {
         return Map.of("status", "ok", "service", "setu-backend");
     }
 
-    /**
-     * Consent must be recorded before /score will run for a given applicant.
-     * Placeholder for the `applicants.consent_given` column in db/init.sql --
-     * see ApplicantStore.
-     */
+    /** Consent has to be recorded before /score will run for this applicant. */
     @PostMapping("/consent")
     public Map<String, Object> giveConsent(@RequestBody Map<String, Object> body) {
         String applicantId = String.valueOf(body.get("applicant_id"));
@@ -60,7 +56,7 @@ public class ScoreController {
             ));
         }
 
-        // Forward straight to the Python model-service, which owns the ML.
+        // forward to the model-service, which owns the actual ML
         try {
             Map<?, ?> body = modelServiceClient.post()
                     .uri("/score")
@@ -71,9 +67,7 @@ public class ScoreController {
             applicantStore.recordScore(request.applicant_id(), (Map<String, Object>) body);
             return ResponseEntity.ok(body);
         } catch (RestClientException e) {
-            // Debug aid: surface the real cause instead of a bare 500 so a
-            // failure is diagnosable from the browser alone. Tighten/remove
-            // before anything resembling a production submission.
+            // surface the real error instead of a bare 500
             return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(Map.of(
                     "error", "model-service call failed",
                     "exceptionType", e.getClass().getName(),
@@ -82,13 +76,13 @@ public class ScoreController {
         }
     }
 
-    /** Shows the same applicant's score sharpening over time (see DESIGN.md section 2). */
+    /** Shows the same applicant's score sharpening over time as days_active grows. */
     @GetMapping("/applicants/{id}/history")
     public List<Map<String, Object>> history(@PathVariable("id") String id) {
         return applicantStore.getHistory(id);
     }
 
-    /** Right-to-erasure (DPDP Act 2023) as an actual endpoint, not just a policy statement. */
+    /** Right-to-erasure -- a real endpoint, not just a policy statement. */
     @DeleteMapping("/applicants/{id}")
     public Map<String, Object> forgetApplicant(@PathVariable("id") String id) {
         applicantStore.forget(id);

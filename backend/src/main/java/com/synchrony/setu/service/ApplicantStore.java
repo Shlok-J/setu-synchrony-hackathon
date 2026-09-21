@@ -9,16 +9,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * Real Postgres-backed persistence for consent, score history, and
- * right-to-erasure, against the schema in db/init.sql. Score results are
- * stored as a JSON text column (`result_json`) rather than a fully
- * normalized schema for `top_factors` -- simplest correct option given the
- * time available, and Jackson is already on the classpath via
- * spring-boot-starter-web.
- *
- * Method signatures are unchanged from the in-memory version this replaces,
- * so ScoreController needed no changes at all -- exactly the point of
- * keeping this behind its own class from the start.
+ * Postgres-backed consent, score history, and right-to-erasure, against
+ * the schema in db/init.sql. Full score results go into result_json as
+ * text rather than a normalized column-per-field schema, mainly because
+ * top_factors is a variable-length list and this is simpler.
  */
 @Component
 public class ApplicantStore {
@@ -64,8 +58,7 @@ public class ApplicantStore {
                     json
             );
         } catch (Exception e) {
-            // Best-effort logging: a persistence hiccup should never break the
-            // score response the applicant is actually waiting on.
+            // a failed write here shouldn't break the score the applicant is waiting on
         }
     }
 
@@ -90,7 +83,6 @@ public class ApplicantStore {
         return results;
     }
 
-    /** Right-to-erasure (DPDP Act 2023) as a real delete, not just an in-memory clear. */
     public void forget(String applicantId) {
         jdbc.update("DELETE FROM score_history WHERE applicant_id = ?", applicantId);
         jdbc.update("DELETE FROM applicants WHERE applicant_id = ?", applicantId);

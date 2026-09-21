@@ -14,12 +14,9 @@ public class ModelServiceConfig {
 
     @Bean
     public RestClient modelServiceClient() {
-        // The default (JDK HttpClient-backed) request factory streams the
-        // request body using chunked transfer-encoding, whose framing
-        // uvicorn/h11 on the model-service side was failing to parse,
-        // resulting in an apparently empty body. These payloads are small
-        // (a few hundred bytes), so buffer them and send a real
-        // Content-Length instead of streaming/chunking.
+        // the default request factory streams the body as chunked, which
+        // uvicorn on the other end couldn't parse (arrived as an empty
+        // body) -- buffering it and sending a real Content-Length instead
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setOutputStreaming(false);
 

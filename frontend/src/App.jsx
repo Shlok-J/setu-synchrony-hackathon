@@ -1,12 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 
-// Demo simplification: the backend's API-key auth (ApiKeyFilter.java) is a
-// single shared key, not per-user identity, and this is where the frontend
-// would normally read a user's own token instead of a value baked into the
-// shipped JS. A real deployment would use OAuth2/JWT issued per signed-in
-// user; a static client-side key only proves the server-side check is real,
-// not that this is how production auth should look.
+// a real app would use a per-user token here, not a key baked into the JS
 const API_KEY = 'demo-setu-8f3k29xz'
 const API_HEADERS = { 'X-API-Key': API_KEY }
 
@@ -120,8 +115,8 @@ export default function App() {
         <h1>Setu</h1>
       </div>
       <p className="setu-tagline">
-        Progressive trust scoring for underbanked applicants — a cold-start cohort estimate
-        that sharpens into a personal score as history accumulates.
+        Progressive trust scoring for underbanked applicants. Starts as a cold-start cohort
+        estimate and sharpens into a personal score as history accumulates.
       </p>
 
       <div className="setu-container">
@@ -145,7 +140,7 @@ export default function App() {
 
         <section className="setu-card">
           <h2><span className="setu-step-label">2</span>Applicant signals</h2>
-          <p>Demo values — edit any field to see the score respond.</p>
+          <p>Demo values. Edit any field to see the score respond.</p>
           <div className="setu-grid">
             {Object.entries(applicant).map(([key, value]) => (
               <div className="setu-field" key={key}>
@@ -193,7 +188,7 @@ export default function App() {
                 {result.top_factors.map((f) => (
                   <li key={f.feature}>
                     <span className={`factor-dot ${f.direction}`}></span>
-                    {f.feature.replace(/_/g, ' ')} — {f.direction} (magnitude {f.magnitude})
+                    {f.feature.replace(/_/g, ' ')}: {f.direction} (magnitude {f.magnitude})
                   </li>
                 ))}
               </ul>

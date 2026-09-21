@@ -1,7 +1,6 @@
 """
-Core scoring logic for Setu: blends a cohort-similarity cold-start estimate
-with a direct supervised model, weighted by how much of the applicant's own
-history has accumulated. See DESIGN.md section 2 for the rationale.
+Blends a cohort-similarity cold-start estimate with a direct model, weighted
+by how much history the applicant has. See DESIGN.md section 2.
 """
 
 from dataclasses import dataclass, field
@@ -40,8 +39,7 @@ class SetuScoringEngine:
         X = self.scaler.fit_transform(training_df[FEATURE_COLUMNS])
         y = training_df["repaid_on_time"].to_numpy()
 
-        # scikit-learn cohort index: always built, since it's also the
-        # fallback if the pgvector path below is unavailable or fails.
+        # also doubles as the fallback if pgvector isn't available
         self._cohort_k = min(k_neighbors, len(training_df))
         self.cohort_index = NearestNeighbors(n_neighbors=self._cohort_k)
         self.cohort_index.fit(X)
@@ -52,9 +50,8 @@ class SetuScoringEngine:
         )
         self.direct_model.fit(X, y)
 
-        # pgvector-backed cohort lookup (optional). Any failure here just
-        # leaves self.db_conn as None, so _cohort_score below falls back
-        # to the sklearn index unconditionally.
+        # optional pgvector lookup -- any failure here just leaves db_conn
+        # as None and _cohort_score falls back to the sklearn index
         self.db_conn = None
         self.embedding_model = None
         if db_conn is not None:
@@ -84,7 +81,7 @@ class SetuScoringEngine:
                 if outcomes:
                     return float(np.mean(outcomes))
             except Exception:
-                pass  # fall through to the sklearn lookup below
+                pass  # fall through to sklearn
 
         _, idx = self.cohort_index.kneighbors(x_scaled.reshape(1, -1))
         return float(self._cohort_outcomes[idx[0]].mean())
@@ -93,11 +90,9 @@ class SetuScoringEngine:
         return float(self.direct_model.predict_proba(x_scaled.reshape(1, -1))[0, 1])
 
     def _top_factors(self, x_scaled: np.ndarray, n=4):
-        # Permutation-style local explanation: how much would the predicted
-        # probability shift if this feature were at the population mean
-        # (0.0 in standardized space)? Same family of idea as SHAP, chosen
-        # here to avoid an extra heavy dependency under time pressure --
-        # real SHAP is a natural production upgrade, noted in DESIGN.md.
+        # how much does the prediction move if we set each feature back to
+        # the population mean (0 in standardized space) one at a time?
+        # same idea as SHAP, just cheaper -- real SHAP is the upgrade path
         base = self._direct_score(x_scaled)
         impacts = []
         for i, col in enumerate(FEATURE_COLUMNS):
@@ -121,7 +116,7 @@ class SetuScoringEngine:
 
         cohort = self._cohort_score(x_scaled)
         direct = self._direct_score(x_scaled)
-        w = min(1.0, days_active / 90.0)
+        w = min(1.0, days_active / 90.0)  # 90 days = fully warmed up, chosen as a round number
         blended = (1 - w) * cohort + w * direct
 
         method = "cohort" if w == 0 else ("direct" if w == 1 else "blended")

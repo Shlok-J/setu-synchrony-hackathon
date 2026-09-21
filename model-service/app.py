@@ -19,10 +19,8 @@ from model.scoring import SetuScoringEngine
 
 app = FastAPI(title="Setu Model Service")
 
-# Default matches running this file directly from a repo checkout
-# (model-service/app.py, data/ as a sibling directory). The Docker image
-# instead sets SYNTHETIC_DATA_PATH explicitly, since a container's internal
-# layout doesn't have to -- and here, doesn't -- mirror the repo layout.
+# default matches a plain repo checkout; the Docker image sets
+# SYNTHETIC_DATA_PATH explicitly since its layout is different
 DATA_PATH = Path(
     os.environ.get(
         "SYNTHETIC_DATA_PATH",
@@ -31,10 +29,7 @@ DATA_PATH = Path(
 )
 _training_df = pd.read_csv(DATA_PATH)
 
-# Optional: enables pgvector-based cohort lookup (see model/scoring.py and
-# model/db.py). None if Postgres isn't reachable -- the engine falls back
-# to its in-process scikit-learn cohort index in that case, so this never
-# blocks startup or breaks scoring.
+# None if Postgres isn't reachable -- engine just falls back to sklearn
 _db_conn = db_connect()
 engine = SetuScoringEngine(_training_df, db_conn=_db_conn)
 

@@ -1,6 +1,5 @@
-/* Synchrony-inspired palette: warm gold accent + charcoal, based on their
-   visible brand identity (logo mark, lobby signage). Not claimed to be
-   pixel-exact official hex values -- a close, deliberate approximation. */
+/* gold + charcoal, based on Synchrony's logo and office signage --
+   a close approximation, not their exact official hex values */
 :root {
   --gold: #c9a227;
   --gold-deep: #8c6d1f;

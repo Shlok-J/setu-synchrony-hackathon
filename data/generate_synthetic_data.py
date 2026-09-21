@@ -1,26 +1,16 @@
 """
-Synthetic alt-data applicant generator for Setu.
+Synthetic applicant generator for Setu.
 
-Generates a population of "underbanked" applicants with alternative-data
-behavioral features plus a repayment outcome, driven by a single latent
-"financial_discipline" factor + noise. Gender and region are generated
-INDEPENDENTLY of that latent factor on purpose, so any disparity the
-fairness audit finds later is something the model introduced, not
-something baked into the ground truth.
+Every feature is driven by one latent "financial_discipline" factor plus
+noise. Gender and region are generated independently of it on purpose --
+any disparity the fairness audit finds is something the model introduced,
+not something baked into the data. No social/demographic data is used as
+a feature (see DESIGN.md for why).
 
-Deliberately excludes: social-media/social-graph data, caste/religion,
-granular location -- see DESIGN.md for why.
-
-Distribution shapes: count/duration-like features (recharge frequency,
-tenure, transaction frequency, merchant diversity, days late) use Gamma
-distributions -- the standard choice for positive, right-skewed behavioral
-data, and naturally non-negative without an artificial clip-at-zero pile-up.
-Rate/percentage features (regularity, on-time %) use Beta distributions --
-the standard choice for bounded [0,1] proportions. Every feature's MEAN is
-unchanged from the original clipped-Gaussian version (still a simple linear
-function of `discipline`), so the model's already-validated behavior
-(fairness ratios, blend mechanics) doesn't shift -- only the realistic
-shape of the spread around that mean does.
+Count/duration features use Gamma distributions (right-skewed, no fake
+pile-up at zero); rate features use Beta (the standard fit for [0,1]
+proportions). Each feature's mean is still just a linear function of
+discipline, same as before -- only the spread around it looks realistic now.
 """
 
 from pathlib import Path
@@ -72,10 +62,7 @@ def generate(n=N_APPLICANTS, seed=RNG_SEED) -> pd.DataFrame:
     gender = rng.choice(["female", "male", "other"], size=n, p=[0.48, 0.48, 0.04])
     region = rng.choice(["urban", "semi_urban", "rural"], size=n, p=[0.35, 0.35, 0.30])
 
-    # --- Outcome: driven by discipline + independent noise, NOT by gender/region ---
-    # (Unchanged: outcome depends on discipline directly, not on the specific
-    # feature realizations above, so this distributional-shape change has no
-    # effect on the fairness audit's independence property.)
+    # outcome depends on discipline directly, not on gender/region
     logit = -2.5 + 5.5 * discipline + rng.normal(0, 0.6, n)
     prob_repaid = 1 / (1 + np.exp(-logit))
     repaid_on_time = rng.binomial(1, prob_repaid)

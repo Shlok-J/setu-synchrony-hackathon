@@ -3,9 +3,8 @@ package com.synchrony.setu.dto;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
-// Field names are snake_case on purpose -- they mirror the frontend's JSON
-// payload and the Python model-service's Pydantic model exactly, so Jackson
-// needs no naming-strategy configuration on either side of this hop.
+// snake_case on purpose -- matches the frontend's JSON and the Python
+// service's field names exactly, so no naming-strategy config is needed
 public record ApplicantScoreRequest(
         @NotBlank String applicant_id,
         @Min(0) int days_active,

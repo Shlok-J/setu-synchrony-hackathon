@@ -1,13 +1,8 @@
 """
-A learned embedding model for pgvector-based cohort similarity search
-(see model/db.py). PCA fit on the training population's standardized
-features, reducing FEATURE_COLUMNS (10-dim) to EMBED_DIM.
-
-Chosen over a neural embedding (autoencoder/contrastive) for the same
-reason permutation importance stood in for SHAP in explain.py: a simple,
-fast, well-understood technique wins over a more sophisticated one when
-correctness and time matter more than novelty under a deadline. A learned
-neural embedding is the natural production upgrade path -- see DESIGN.md.
+Embedding model for the pgvector cohort search in model/db.py. PCA fit on
+the training population, reducing FEATURE_COLUMNS (10-dim) to EMBED_DIM.
+Picked over a neural embedding for the same reason permutation importance
+stood in for SHAP: simple and fast beats fancy under a deadline.
 """
 
 import numpy as np

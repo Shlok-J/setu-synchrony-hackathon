@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: setu
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-setu_dev_password}
     ports:
-      - "5432:5432"  # kept for local (non-containerized) Codespace dev; not exposed publicly on EC2
+      - "5432:5432"  # needed for local dev when backend runs outside Docker
     volumes:
       - setu_pgdata:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql

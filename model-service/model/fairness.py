@@ -1,11 +1,7 @@
 """
-Fairness audit over the trained model's own predictions, run against the
-same population it was trained on. See DESIGN.md section 3.
-
-Gender and region are never model features (see FEATURE_COLUMNS in
-scoring.py) -- they exist in the data solely so an audit like this one can
-check whether the model's *output* is disparate across groups, even though
-none of its inputs are demographic.
+Fairness audit over the trained model's own predictions. See DESIGN.md
+section 3. Gender/region are never model features -- they're only here so
+we can check the model's *output* for disparity across groups.
 """
 
 import pandas as pd

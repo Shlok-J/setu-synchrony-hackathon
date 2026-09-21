@@ -1,12 +1,8 @@
 """
 Postgres/pgvector connectivity for cohort similarity search.
 
-Optional in every sense: connect() returns None instead of raising if
-Postgres isn't reachable, and every function here is written so its
-caller (scoring.py) can catch a failure and fall back to the in-process
-scikit-learn NearestNeighbors lookup that was already there. A missing or
-unreachable database should degrade the *adaptivity* of the cold-start
-estimate, never break scoring outright.
+connect() returns None instead of raising if Postgres isn't reachable, so
+scoring.py can fall back to its scikit-learn lookup instead of crashing.
 """
 
 import os
@@ -33,9 +29,7 @@ def connect():
 
 
 def _to_vector_literal(vec) -> str:
-    # pgvector's text input format: '[0.1,0.2,...]'. Passed as a plain
-    # string parameter with an explicit ::vector cast in the SQL below,
-    # rather than relying on implicit type inference.
+    # pgvector's text input format, e.g. '[0.1,0.2,0.3]'
     return "[" + ",".join(f"{float(x):.6f}" for x in vec) + "]"
 
 

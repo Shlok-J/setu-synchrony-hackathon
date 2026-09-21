@@ -1,12 +1,7 @@
 """
-Sanity-check profiles spanning the realistic spectrum of applicants, so a
-human (or CI) can verify the model's behavior is directionally sensible --
-not just that it runs. These check DIRECTION and mechanism (which path fires,
-roughly where the score lands), not exact numbers, since cohort matching has
-some inherent variance.
-
-The same profiles are documented for manual testing via curl/the UI in
-DESIGN.md's "Sample profiles" section.
+Sample applicant profiles across the spectrum, checking the model behaves
+sensibly (direction and which path fires), not exact numbers -- cohort
+matching has some natural variance run to run.
 """
 
 import pandas as pd
