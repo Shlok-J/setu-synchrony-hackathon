@@ -28,9 +28,7 @@ def connect():
         )
         conn.autocommit = True
         return conn
-    except Exception as e:
-        # TEMPORARY diagnostic -- remove once pgvector is confirmed working.
-        print(f"[DEBUG db] Postgres connect() failed: {type(e).__name__}: {e}", flush=True)
+    except Exception:
         return None
 
 

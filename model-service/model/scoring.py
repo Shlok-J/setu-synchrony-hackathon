@@ -70,9 +70,7 @@ class SetuScoringEngine:
                     y,
                 )
                 self.db_conn = db_conn
-            except Exception as e:
-                # TEMPORARY diagnostic -- remove once pgvector is confirmed working.
-                print(f"[DEBUG scoring] pgvector setup failed: {type(e).__name__}: {e}", flush=True)
+            except Exception:
                 self.db_conn = None
                 self.embedding_model = None
 
