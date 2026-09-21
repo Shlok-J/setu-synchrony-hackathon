@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import './App.css'
 
 // Demo simplification: the backend's API-key auth (ApiKeyFilter.java) is a
 // single shared key, not per-user identity, and this is where the frontend
@@ -22,6 +23,12 @@ const SAMPLE_APPLICANT = {
   merchant_diversity: 6,
   platform_tenure_days: 90,
   kyc_complete: 1,
+}
+
+const BAND_LABEL = {
+  low_risk: 'Low risk',
+  medium_risk: 'Medium risk',
+  high_risk: 'High risk',
 }
 
 export default function App() {
@@ -95,103 +102,129 @@ export default function App() {
     }
   }
 
+  const handleErase = async () => {
+    await fetch(`/api/applicants/${encodeURIComponent(applicant.applicant_id)}`, {
+      method: 'DELETE',
+      headers: API_HEADERS,
+    })
+    setConsentGiven(false)
+    setResult(null)
+  }
+
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', maxWidth: 640, margin: '2rem auto', padding: '0 1rem' }}>
-      <h1>Setu</h1>
-      <p>Progressive trust scoring for underbanked applicants — a cold-start cohort estimate that sharpens into a personal score as history accumulates.</p>
-
-      <div style={{ padding: '1rem', border: '1px solid #ccc', borderRadius: 8, marginBottom: '1rem' }}>
-        <h2 style={{ marginTop: 0 }}>Step 1 — Consent</h2>
-        <p style={{ fontSize: '0.9rem' }}>
-          We use your mobile recharge, utility payment, and transaction data to assess risk.
-          No social media, social network, or demographic data is used. You can withdraw
-          this data at any time (see "Erase my data" below).
-        </p>
-        <button onClick={handleConsent} disabled={consenting || consentGiven}>
-          {consentGiven ? 'Consent recorded ✓' : consenting ? 'Recording…' : 'I consent — give consent'}
-        </button>
+    <div className="setu-app">
+      <div className="setu-header">
+        <span className="setu-mark" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+        <h1>Setu</h1>
       </div>
+      <p className="setu-tagline">
+        Progressive trust scoring for underbanked applicants — a cold-start cohort estimate
+        that sharpens into a personal score as history accumulates.
+      </p>
 
-      <h2>Step 2 — Applicant signals (demo values, editable)</h2>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-        {Object.entries(applicant).map(([key, value]) => (
-          <label key={key} style={{ display: 'flex', flexDirection: 'column', fontSize: '0.85rem' }}>
-            {key}
-            <input
-              type={key === 'applicant_id' ? 'text' : 'number'}
-              value={value}
-              onChange={(e) =>
-                handleChange(key, key === 'applicant_id' ? e.target.value : Number(e.target.value))
-              }
-            />
-          </label>
-        ))}
-      </div>
+      <div className="setu-container">
+        <section className="setu-card">
+          <h2><span className="setu-step-label">1</span>Consent</h2>
+          <p>
+            We use your mobile recharge, utility payment, and transaction data to assess risk.
+            No social media, social network, or demographic data is used. You can withdraw
+            this data at any time.
+          </p>
+          <div className="setu-actions">
+            <button
+              className="setu-btn setu-btn-primary"
+              onClick={handleConsent}
+              disabled={consenting || consentGiven}
+            >
+              {consentGiven ? 'Consent recorded ✓' : consenting ? 'Recording…' : 'I consent'}
+            </button>
+          </div>
+        </section>
 
-      <button
-        onClick={handleScore}
-        disabled={loading || !consentGiven}
-        title={!consentGiven ? 'Give consent first' : undefined}
-        style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}
-      >
-        {loading ? 'Scoring…' : 'Get risk score'}
-      </button>
+        <section className="setu-card">
+          <h2><span className="setu-step-label">2</span>Applicant signals</h2>
+          <p>Demo values — edit any field to see the score respond.</p>
+          <div className="setu-grid">
+            {Object.entries(applicant).map(([key, value]) => (
+              <div className="setu-field" key={key}>
+                <label htmlFor={key}>{key.replace(/_/g, ' ')}</label>
+                <input
+                  id={key}
+                  type={key === 'applicant_id' ? 'text' : 'number'}
+                  value={value}
+                  onChange={(e) =>
+                    handleChange(key, key === 'applicant_id' ? e.target.value : Number(e.target.value))
+                  }
+                />
+              </div>
+            ))}
+          </div>
+          <div className="setu-actions">
+            <button
+              className="setu-btn setu-btn-primary"
+              onClick={handleScore}
+              disabled={loading || !consentGiven}
+              title={!consentGiven ? 'Give consent first' : undefined}
+            >
+              {loading ? 'Scoring…' : 'Get risk score'}
+            </button>
+            <button className="setu-btn setu-btn-secondary" onClick={handleErase}>
+              Erase my data
+            </button>
+          </div>
+        </section>
 
-      <button
-        onClick={async () => {
-          await fetch(`/api/applicants/${encodeURIComponent(applicant.applicant_id)}`, {
-            method: 'DELETE',
-            headers: API_HEADERS,
-          })
-          setConsentGiven(false)
-          setResult(null)
-        }}
-        style={{ marginTop: '1rem', marginLeft: '0.5rem', padding: '0.5rem 1rem' }}
-      >
-        Erase my data
-      </button>
+        {error && <p className="setu-error">Error: {error}</p>}
 
-      {error && <p style={{ color: 'crimson' }}>Error: {error}</p>}
-
-      {result && (
-        <div style={{ marginTop: '1.5rem', padding: '1rem', border: '1px solid #ccc', borderRadius: 8 }}>
-          <h3>Result for {result.applicant_id}</h3>
-          <p><strong>Risk band:</strong> {result.risk_band} ({result.risk_score})</p>
-          <p><strong>Method:</strong> {result.method} (cohort weight: {result.cohort_weight})</p>
-          <p><strong>Why:</strong> {result.explanation}</p>
-          {result.top_factors?.length > 0 && (
-            <>
-              <p><strong>Top factors:</strong></p>
-              <ul>
+        {result && (
+          <section className="setu-card">
+            <span className={`setu-result-band band-${result.risk_band}`}>
+              {BAND_LABEL[result.risk_band] || result.risk_band}
+            </span>
+            <div className="setu-result-score">{result.risk_score}</div>
+            <p className="setu-result-meta">
+              {result.applicant_id} · {result.method} estimate · cohort weight {result.cohort_weight}
+            </p>
+            <div className="setu-explanation">{result.explanation}</div>
+            {result.top_factors?.length > 0 && (
+              <ul className="setu-factors">
                 {result.top_factors.map((f) => (
-                  <li key={f.feature}>{f.feature}: {f.direction} (magnitude {f.magnitude})</li>
+                  <li key={f.feature}>
+                    <span className={`factor-dot ${f.direction}`}></span>
+                    {f.feature.replace(/_/g, ' ')} — {f.direction} (magnitude {f.magnitude})
+                  </li>
                 ))}
               </ul>
-            </>
-          )}
-        </div>
-      )}
-
-      <div style={{ marginTop: '2rem', padding: '1rem', border: '1px solid #ccc', borderRadius: 8 }}>
-        <h2 style={{ marginTop: 0 }}>Fairness audit</h2>
-        <p style={{ fontSize: '0.9rem' }}>
-          Checks whether the trained model's own predictions are disparate across gender/region,
-          even though neither is a model feature.
-        </p>
-        <button onClick={handleFairnessReport} disabled={fairnessLoading}>
-          {fairnessLoading ? 'Loading…' : 'View fairness report'}
-        </button>
-        {fairnessReport && (
-          <div style={{ marginTop: '1rem', fontSize: '0.9rem' }}>
-            <p><strong>Overall model approval rate:</strong> {fairnessReport.overall_model_approval_rate}</p>
-            <p><strong>By gender:</strong> {JSON.stringify(fairnessReport.by_gender)}</p>
-            <p><strong>By region:</strong> {JSON.stringify(fairnessReport.by_region)}</p>
-            <p>
-              <strong>Disparity ratios:</strong> gender {fairnessReport.disparity_ratio_gender}, region{' '}
-              {fairnessReport.disparity_ratio_region} <em>(four-fifths rule flags below 0.8 — both clear it)</em>
-            </p>
-          </div>
+            )}
+          </section>
         )}
+
+        <section className="setu-card">
+          <h2>Fairness audit</h2>
+          <p>
+            Checks whether the trained model's own predictions are disparate across
+            gender/region, even though neither is a model feature.
+          </p>
+          <div className="setu-actions">
+            <button className="setu-btn setu-btn-secondary" onClick={handleFairnessReport} disabled={fairnessLoading}>
+              {fairnessLoading ? 'Loading…' : 'View fairness report'}
+            </button>
+          </div>
+          {fairnessReport && (
+            <div className="setu-fairness-stats">
+              <div className="setu-stat">
+                <div className="setu-stat-value">{fairnessReport.disparity_ratio_gender}</div>
+                <div className="setu-stat-label">Gender disparity ratio</div>
+              </div>
+              <div className="setu-stat">
+                <div className="setu-stat-value">{fairnessReport.disparity_ratio_region}</div>
+                <div className="setu-stat-label">Region disparity ratio</div>
+              </div>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   )
