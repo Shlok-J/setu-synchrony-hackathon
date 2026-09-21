@@ -220,6 +220,45 @@
 .band-medium_risk { background: var(--gold-tint); color: var(--gold-deep); }
 .band-high_risk { background: var(--danger-bg); color: var(--danger); }
 
+/* red-to-green gauge, same idea as a CIBIL score band, split at the exact
+   0.45/0.7 thresholds _band() uses in app.py so the colors and the
+   labels below always agree with what risk_band actually says */
+.setu-gauge {
+  margin: 0.75rem 0 1rem;
+}
+
+.setu-gauge-track {
+  position: relative;
+  height: 12px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--danger) 0%, var(--danger) 45%,
+    var(--gold) 45%, var(--gold) 70%,
+    #2e6b34 70%, #2e6b34 100%
+  );
+}
+
+.setu-gauge-marker {
+  position: absolute;
+  top: -3px;
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--charcoal);
+  box-shadow: 0 0 0 2px var(--card);
+  transform: translateX(-50%);
+  transition: left 0.3s ease;
+}
+
+.setu-gauge-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--slate);
+}
+
 .setu-result-score {
   font-size: 2.2rem;
   font-weight: 700;

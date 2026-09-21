@@ -205,6 +205,19 @@ export default function App() {
               {BAND_LABEL[result.risk_band] || result.risk_band}
             </span>
             <div className="setu-result-score">{result.risk_score}</div>
+            <div className="setu-gauge">
+              <div className="setu-gauge-track">
+                <div
+                  className="setu-gauge-marker"
+                  style={{ left: `${Math.min(100, Math.max(0, result.risk_score * 100))}%` }}
+                />
+              </div>
+              <div className="setu-gauge-labels">
+                <span>High risk</span>
+                <span>Medium risk</span>
+                <span>Low risk</span>
+              </div>
+            </div>
             <p className="setu-result-meta">
               {result.applicant_id} · {result.method} estimate · cohort weight {result.cohort_weight}
             </p>
