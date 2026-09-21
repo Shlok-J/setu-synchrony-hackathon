@@ -63,6 +63,4 @@ Only port 80 (and 22 for SSH) needs to be open to the internet; 8080/8000/5432 a
 
 ## Status
 
-Working end-to-end, verified in the Codespace: React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring (cohort lookup now backed by a real pgvector similarity search over a PCA-learned embedding, not just scikit-learn), real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, API-key auth, real input validation, and a real fairness audit of the trained model (`GET /api/fairness-report`).
-
-**Also live on AWS:** http://43.204.147.211/ — reflects an earlier point before the pgvector/embeddings/auth/validation work above (that instance's tight memory means redeploys need care, see DESIGN.md). See [DESIGN.md](DESIGN.md) for full status.
+**Live on AWS:** http://43.204.147.211/ — and working identically in the Codespace. React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring (cohort lookup backed by a real pgvector similarity search over a PCA-learned embedding), real Gemini-based explanation, per-applicant score history (persisted), right-to-erasure, API-key auth, real input validation, and a real fairness audit of the trained model (`GET /api/fairness-report`). See [DESIGN.md](DESIGN.md) for full status.
