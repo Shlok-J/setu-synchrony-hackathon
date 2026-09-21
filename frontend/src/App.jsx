@@ -41,6 +41,21 @@ const FIELD_LABELS = {
   kyc_complete: 'KYC verified',
 }
 
+const FIELD_INFO = {
+  applicant_id: 'Unique ID for this applicant, used to track consent and score history.',
+  days_active: "How long they've been a customer. Decides whether the score uses a cohort-only estimate, their own personal model, or a blend of both.",
+  recharge_freq_per_month: 'How often they top up their phone each month. Frequent, steady recharging suggests stable income.',
+  recharge_regularity: 'How consistent the timing of recharges is, 0 = erratic to 1 = very regular. A proxy for financial discipline.',
+  tenure_months_on_number: "How long they've kept the same phone number. People in financial distress tend to change numbers more often.",
+  utility_pct_on_time: 'Share of utility bills paid on time, 0 to 1. A direct signal of bill-paying discipline.',
+  utility_avg_days_late: 'When bills are late, how late on average. Captures severity, not just whether they are ever late.',
+  txn_freq_per_month: 'How many digital (UPI or wallet) transactions per month. Reflects overall financial activity.',
+  txn_regularity: 'How consistent transaction patterns are over time, 0 to 1. Erratic patterns can signal instability.',
+  merchant_diversity: 'Number of different merchants they transact with. Broader spending suggests broader participation in the economy.',
+  platform_tenure_days: "Total days using this platform. More days means more of the applicant's own history to score from.",
+  kyc_complete: 'Whether identity verification is complete. A regulatory requirement, and incomplete KYC is itself a risk flag.',
+}
+
 export default function App() {
   const [applicant, setApplicant] = useState(SAMPLE_APPLICANT)
   const [result, setResult] = useState(null)
@@ -159,7 +174,12 @@ export default function App() {
           <div className="setu-grid">
             {Object.entries(applicant).map(([key, value]) => (
               <div className="setu-field" key={key}>
-                <label htmlFor={key}>{FIELD_LABELS[key] || key}</label>
+                <label htmlFor={key}>
+                  {FIELD_LABELS[key] || key}
+                  {FIELD_INFO[key] && (
+                    <span className="setu-info" tabIndex={0} title={FIELD_INFO[key]}>i</span>
+                  )}
+                </label>
                 {key === 'kyc_complete' ? (
                   <select
                     id={key}
