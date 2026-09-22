@@ -63,4 +63,4 @@ Only port 80 (and 22 for SSH) needs to be open to the internet; 8080/8000/5432 a
 
 ## Status
 
-**Live on AWS:** http://43.204.147.211/ — and working identically in the Codespace. React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring (cohort lookup backed by a real pgvector similarity search over a PCA-learned embedding), real Groq-based explanation, per-applicant score history (persisted), right-to-erasure, API-key auth, real input validation, and a real fairness audit of the trained model (`GET /api/fairness-report`). See [DESIGN.md](DESIGN.md) for full status.
+**Live on AWS:** http://13.203.157.236/ — and working identically in the Codespace. React → Spring Boot → model-service → back, covering consent (enforced server-side, persisted in Postgres), scoring (cohort lookup backed by a real pgvector similarity search over a PCA-learned embedding), real Groq-based explanation, per-applicant score history (persisted), right-to-erasure, API-key auth, real input validation, and a real fairness audit of the trained model (`GET /api/fairness-report`). See [DESIGN.md](DESIGN.md) for full status.
